@@ -48,8 +48,12 @@
               if (i < 6) {
                  %>
             <li data-role="fieldcontain">
-              <label for="${p.name}">${p.naturalName} : </label>
+              <label for="input-${classNameLowerCase}-${p.name}">${p.naturalName}</label>
+              <%  if (p.type == String) { %>
               <input type="text" name="${p.name}" id="input-${classNameLowerCase}-${p.name}" value=""/>
+              <%  } else if (p.type == Boolean || p.type == boolean) { %>
+              <input type="checkbox" name="${p.name}" id="input-${classNameLowerCase}-${p.name}" value=""/>
+              <%  } %>
             </li>
          <%  } }  %>
         </ul>

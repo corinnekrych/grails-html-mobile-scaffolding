@@ -30,11 +30,10 @@ function show${className}(id) {
     props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
     Collections.sort(props, comparator.constructors[0].newInstance([domainClass] as Object[]))
     props.eachWithIndex { p, i ->
-    if (i < 6) {
        %>
 	\$('#input-${classNameLowerCase}-${p.name}').val(${classNameLowerCase}.${p.name});
 	\$('#field-${classNameLowerCase}-${p.name}').fieldcontain('refresh');
-    <%  } }  %>
+    <%  }  %>
 	\$('#input-${classNameLowerCase}-id').val(${classNameLowerCase}.id);
 	\$('#field-${classNameLowerCase}-id').fieldcontain('refresh');
 	\$('#input-${classNameLowerCase}-version').val(${classNameLowerCase}.version);
@@ -54,13 +53,15 @@ function serializeObject(inputs) {
 
 	\$.each(arrayData, function() {
 		var value;
-
-		if (this.value != null) {
-			value = this.value;
-		} else {
-			value = '';
-		}
-
+        if (this.type == 'checkbox') {
+        	value = this.checked; 	
+        } else {
+			if (this.value != null) {
+				value = this.value;
+			} else {
+				value = '';
+			}
+        }
 		if (objectData[this.name] != null) {
 			if (!objectData[this.name].push) {
 				objectData[this.name] = [ objectData[this.name] ];
