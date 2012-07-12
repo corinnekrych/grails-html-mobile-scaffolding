@@ -83,7 +83,6 @@ class HtmlMobileTemplateGenerator extends DefaultGrailsTemplateGenerator {
   @Override
   void generateView(GrailsDomainClass domainClass, String viewName, Writer out) {
     def templateText = getTemplateText(viewName)
-    event 'StatusUpdate', ["generateView::DEBUG viewName=$viewName"]
     if (templateText) {
 
       def t = engine.createTemplate(templateText)
@@ -111,15 +110,16 @@ class HtmlMobileTemplateGenerator extends DefaultGrailsTemplateGenerator {
     def suffix = viewName.find(/\.\w+$/)
 
     def viewsDir
+    def destFile 
     if (suffix == '.html') {
       viewsDir = new File("$destDir/web-app")
+      destFile = new File(viewsDir, "$viewName")
     } else if (suffix == '.js') {
       viewsDir = new File("$destDir/web-app/js")
+      destFile = new File(viewsDir, "${domainClass.propertyName}$viewName")
     } 
     if (!viewsDir.exists()) viewsDir.mkdirs()
-
-    def destFile = new File(viewsDir, "${domainClass.propertyName}$viewName")
-    destFile.withWriter { Writer writer ->
+      destFile.withWriter { Writer writer ->
       generateView domainClass, viewName, writer
     }
   }
