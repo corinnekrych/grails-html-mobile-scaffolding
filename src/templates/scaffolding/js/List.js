@@ -42,8 +42,8 @@ function get${className}s() {
 
 ${className}List.prototype.renderToHtml = function() {
 	var context = this.${classNameLowerCase}s;
-	for ( var i = 0; i < context.${classNameLowerCase}s.length; i++) {
-		var ${classNameLowerCase} = context.${classNameLowerCase}s[i];
+	for ( var i = 0; i < context.length; i++) {
+		var ${classNameLowerCase} = context[i];
 		add${className}OnSection(${classNameLowerCase});
 	}
 	\$('#list-${classNameLowerCase}s').listview('refresh');
@@ -51,11 +51,31 @@ ${className}List.prototype.renderToHtml = function() {
 
 
 function add${className}OnSection (${classNameLowerCase}) {
-	var out = '<li><a href="#section-show-${classNameLowerCase}?id='+ ${classNameLowerCase}.id + '" data-transition="fade" id="${classNameLowerCase}' + ${classNameLowerCase}.id + '-in-list">' + ${classNameLowerCase}.name +';' + ${classNameLowerCase}.date +'</a></li>';
+	var out = '<li><a href="#section-show-${classNameLowerCase}?id='+ ${classNameLowerCase}.id + '" data-transition="fade" id="${classNameLowerCase}'; 
+	out =  out + ${classNameLowerCase}.id + '-in-list">';
+	
+    <%  excludedProps = Event.allEvents.toList() << 'id' << 'version'
+    allowedNames = domainClass.persistentProperties*.name << 'dateCreated' << 'lastUpdated'
+    props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
+    Collections.sort(props, comparator.constructors[0].newInstance([domainClass] as Object[]))
+    props.eachWithIndex { p, i ->
+       %>out = out + ${classNameLowerCase}.${p.name} +';';
+       <%  }  %>
+	out = out + '</a></li>';
+	
+	
 	\$("#section-${classNameLowerCase}s").data('${className}_' + ${classNameLowerCase}.id, ${classNameLowerCase});
 	\$(${classNameLowerCase}).bind("refresh-${classNameLowerCase}" + ${classNameLowerCase}.id + "-list", function(bind, new${className}) {
 		var ${classNameLowerCase} = \$("#section-${classNameLowerCase}s").data('${className}_' + new${className}.id);
-		\$('#${classNameLowerCase}' + new${className}.id + '-in-list').text(new${className}.name +';' + new${className}.date);
+		var textDisplay = "";
+	    <%  excludedProps = Event.allEvents.toList() << 'id' << 'version'
+	    allowedNames = domainClass.persistentProperties*.name << 'dateCreated' << 'lastUpdated'
+	    props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
+	    Collections.sort(props, comparator.constructors[0].newInstance([domainClass] as Object[]))
+	    props.eachWithIndex { p, i ->
+	       %>textDisplay = textDisplay + new${className}.${p.name} +';';
+	       <%  }  %>
+		\$('#${classNameLowerCase}' + new${className}.id + '-in-list').text(textDisplay);
 		for(var property in new${className}) {
 			${classNameLowerCase}[property] = new${className}[property];
 		}
