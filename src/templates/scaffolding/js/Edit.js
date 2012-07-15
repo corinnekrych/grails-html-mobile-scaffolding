@@ -15,36 +15,50 @@ function ${className}() {
 });
 
 function create${className}() {
-	var div = \$("#form-update-${classNameLowerCase}");
-	var inputs = div.find("input");
-	\$.each(inputs, function (index, element) {
-		\$(element).val("");
-	});
+	resetForm("form-update-${classNameLowerCase}");
+    <%  excludedProps = Event.allEvents.toList() << 'id' << 'version'
+    allowedNames = domainClass.persistentProperties*.name << 'dateCreated' << 'lastUpdated'
+    props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
+    Collections.sort(props, comparator.constructors[0].newInstance([domainClass] as Object[]))
+    props.eachWithIndex { p, i ->
+    if (p.isEnum()) { %>	
+	\$('input[name="${p.name}"]:first').prop('checked', true);
+	\$('input[name="${p.name}"]:first').checkboxradio('refresh');
+    <%  }  }%>	
 	\$("#delete-${classNameLowerCase}").hide();
 }
 
 function show${className}(id) {
+	resetForm("form-update-${classNameLowerCase}");
 	var ${classNameLowerCase} = \$("#section-${classNameLowerCase}s").data("${className}_" + id);
     <%  excludedProps = Event.allEvents.toList() << 'id' << 'version'
     allowedNames = domainClass.persistentProperties*.name << 'dateCreated' << 'lastUpdated'
     props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
     Collections.sort(props, comparator.constructors[0].newInstance([domainClass] as Object[]))
     props.eachWithIndex { p, i ->
-       %>
+    if (p.type == Boolean || p.type == boolean) { %>
+	\$('#input-${classNameLowerCase}-${p.name}').prop('checked', ${classNameLowerCase}.${p.name});
+	\$('#input-${classNameLowerCase}-${p.name}').checkboxradio('refresh');
+    <%  } else if (p.isEnum()) {%>
+	\$('#input-${classNameLowerCase}-${p.name}-' + ${classNameLowerCase}.${p.name}.name).prop('checked', true);
+	\$('#input-${classNameLowerCase}-${p.name}-' + ${classNameLowerCase}.${p.name}.name).checkboxradio('refresh');
+    <%  } else  {%>
 	\$('#input-${classNameLowerCase}-${p.name}').val(${classNameLowerCase}.${p.name});
-	\$('#field-${classNameLowerCase}-${p.name}').fieldcontain('refresh');
-    <%  }  %>
+    <%  }  }%>
 	\$('#input-${classNameLowerCase}-id').val(${classNameLowerCase}.id);
-	\$('#field-${classNameLowerCase}-id').fieldcontain('refresh');
 	\$('#input-${classNameLowerCase}-version').val(${classNameLowerCase}.version);
-	\$('#field-${classNameLowerCase}-version').fieldcontain('refresh');
 	\$('#input-${classNameLowerCase}-class').val(${classNameLowerCase}.class);
-	\$('#field-${classNameLowerCase}-class').fieldcontain('refresh');
 	\$("#delete-${classNameLowerCase}").show();
 }
 
 ${className}.prototype.renderToHtml = function() {
 };
+
+function resetForm(form) {
+	var div = \$("#" + form);
+	div.find('input:text, input:hidden, input:password').val('');
+	div.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected').checkboxradio('refresh');
+}
 
 function serializeObject(inputs) {
 	var arrayData, objectData;
@@ -52,29 +66,41 @@ function serializeObject(inputs) {
 	objectData = {};
 
 	\$.each(arrayData, function() {
-		var value;
-        if (this.type == 'checkbox') {
-        	value = this.checked; 	
-        } else {
+		var value, classtype;
+		var add = true;
+
+		if (this.type == 'radio') {
+			if (\$(this).is(':checked')) {
+				value = this.value;
+			} else {
+				add = false;
+			}
+		} else if (this.type == 'checkbox') {
+			value = this.checked;
+		} else {
 			if (this.value != null) {
 				value = this.value;
 			} else {
 				value = '';
 			}
-        }
-		if (objectData[this.name] != null) {
-			if (!objectData[this.name].push) {
-				objectData[this.name] = [ objectData[this.name] ];
-			}
+		}
 
-			objectData[this.name].push(value);
-		} else {
-			objectData[this.name] = value;
+		if (add) {
+			if (objectData[this.name] != null) {
+				if (!objectData[this.name].push) {
+					objectData[this.name] = [ objectData[this.name] ];
+				}
+
+				objectData[this.name].push(value);
+			} else {
+				objectData[this.name] = value;
+			}
 		}
 	});
 
 	return objectData;
 }
+
 
 \$("#submit-${classNameLowerCase}").live("click tap", function() {
 	var div = \$("#form-update-${classNameLowerCase}");

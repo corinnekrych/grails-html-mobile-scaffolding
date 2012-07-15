@@ -58,9 +58,12 @@ function add${className}OnSection (${classNameLowerCase}) {
     allowedNames = domainClass.persistentProperties*.name << 'dateCreated' << 'lastUpdated'
     props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
     Collections.sort(props, comparator.constructors[0].newInstance([domainClass] as Object[]))
-    props.eachWithIndex { p, i ->
+    props.eachWithIndex { p, i -> 
+    	if (p.isEnum()) {
+       %>out = out + ${classNameLowerCase}.${p.name}.name +';';
+       <%  } else {
        %>out = out + ${classNameLowerCase}.${p.name} +';';
-       <%  }  %>
+       <%  }   }%>
 	out = out + '</a></li>';
 	
 	
@@ -73,8 +76,11 @@ function add${className}OnSection (${classNameLowerCase}) {
 	    props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
 	    Collections.sort(props, comparator.constructors[0].newInstance([domainClass] as Object[]))
 	    props.eachWithIndex { p, i ->
-	       %>textDisplay = textDisplay + new${className}.${p.name} +';';
-	       <%  }  %>
+	    	if (p.isEnum()) {
+	       %>textDisplay = textDisplay + new${className}.${p.name}.name +';';
+	       <%  } else {
+		   %>textDisplay = textDisplay + new${className}.${p.name} +';';
+	       <%  }  }%>
 		\$('#${classNameLowerCase}' + new${className}.id + '-in-list').text(textDisplay);
 		for(var property in new${className}) {
 			${classNameLowerCase}[property] = new${className}[property];

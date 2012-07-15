@@ -5,19 +5,18 @@
 <title>My Page</title>
   <% classNameLowerCase = className.toLowerCase() %>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.0-rc.1/jquery.mobile-1.1.0-rc.1.min.css" />
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.1.1/jquery.mobile-1.1.1.min.css" />
 <script src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
 <script src="js/${classNameLowerCase}List.js"></script>
 <script src="js/${classNameLowerCase}Edit.js"></script>
-<script	src="http://code.jquery.com/mobile/1.1.0-rc.1/jquery.mobile-1.1.0-rc.1.min.js"></script>
-<script	src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.9/jquery.validate.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.1.1/jquery.mobile-1.1.1.min.js"></script>
 
 </head>
 
 <body>
 
 	<section data-role="page" id="section-${classNameLowerCase}s">
-		<div data-role="header">
+		<div data-role="header" data-position="fixed">
 			<h1>${className}</h1>
 		</div>
 		<div data-role="content">
@@ -27,15 +26,15 @@
 		<div data-role="footer" data-position="fixed">
 			<div data-role="navbar">
 				<ul>
-					<li><a href="#section-show-${classNameLowerCase}" data-role="button" data-icon="plus">Add</a></li>
+					<li><a href="#section-show-${classNameLowerCase}" data-transition="slide" data-role="button" data-icon="plus">Add</a></li>
 				</ul>
 			</div>
 		</div>
 	</section>
 	
 	<section data-role="page" id="section-show-${classNameLowerCase}">
-		<div data-role="header" id="show-${classNameLowerCase}">
-			<a href="#section-${classNameLowerCase}s" data-icon="arrow-l">Cancel</a>
+		<div data-role="header" id="show-${classNameLowerCase}" data-position="fixed">
+			<a href="#section-${classNameLowerCase}s" data-transition="slide" data-icon="arrow-l">Cancel</a>
 			<h1>${className}</h1>
 		</div>
      <div id="form-update-${classNameLowerCase}">
@@ -45,17 +44,26 @@
               props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
               Collections.sort(props, comparator.constructors[0].newInstance([domainClass] as Object[]))
               props.eachWithIndex { p, i ->
-              if (i < 6) {
                  %>
             <li data-role="fieldcontain">
-              <label for="input-${classNameLowerCase}-${p.name}">${p.naturalName}</label>
               <%  if (p.type == String) { %>
+              <label for="input-${classNameLowerCase}-${p.name}">${p.naturalName}</label>
               <input type="text" name="${p.name}" id="input-${classNameLowerCase}-${p.name}" value=""/>
               <%  } else if (p.type == Boolean || p.type == boolean) { %>
+              <label for="input-${classNameLowerCase}-${p.name}">${p.naturalName}</label>
               <input type="checkbox" name="${p.name}" id="input-${classNameLowerCase}-${p.name}" value=""/>
-              <%  } %>
+              <%  } else if(p.isEnum()) {%>
+              <fieldset data-role="controlgroup">
+                 <legend>Choose a ${p.name}</legend>
+                 <% 
+                 p.type.values().each {it-> %>
+                 <label for="input-${classNameLowerCase}-${p.name}-${it}">${it}</label>
+                 <input type="radio" name="${p.name}" id="input-${classNameLowerCase}-${p.name}-${it}" value="${it}"/>
+                 <% }%>
+              </fieldset>
+                 <% }%>
             </li>
-         <%  } }  %>
+         <%  }   %>
         </ul>
         <input type="hidden" name="id" id="input-${classNameLowerCase}-id"/>
         <input type="hidden" name="version" id="input-${classNameLowerCase}-version"/>
@@ -64,8 +72,8 @@
     <div data-role="footer" data-position="fixed">
       <div data-role="navbar">
         <ul>
-          <li><a href="#section-${classNameLowerCase}s" data-role="button" data-icon="delete" id="delete-${classNameLowerCase}">Delete</a></li> 
-          <li><a href="#section-${classNameLowerCase}s" data-icon="save" id="submit-${classNameLowerCase}">Save</a></li>
+          <li><a href="#section-${classNameLowerCase}s" data-transition="slide" data-role="button" data-icon="delete" id="delete-${classNameLowerCase}">Delete</a></li> 
+          <li><a href="#section-${classNameLowerCase}s" data-transition="slide" data-icon="save" id="submit-${classNameLowerCase}">Save</a></li>
         </ul>
       </div>
     </div>
