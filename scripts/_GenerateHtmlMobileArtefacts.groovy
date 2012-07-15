@@ -90,7 +90,7 @@ class HtmlMobileTemplateGenerator extends DefaultGrailsTemplateGenerator {
 
       boolean hasHibernate = pluginManager?.hasGrailsPlugin('hibernate')
       def packageName = domainClass.packageName ? "<%@ page import=\"${domainClass.fullName}\" %>" : ""
-      def project = domainClass.packageName.replace('.' as char, '-' as char)
+      def project = this.grailsApplication.metadata['app.name']
       def binding = [pluginManager: pluginManager,
         project: project,
         packageName: packageName,
@@ -117,7 +117,7 @@ class HtmlMobileTemplateGenerator extends DefaultGrailsTemplateGenerator {
     } 
     if (!viewsDir.exists()) viewsDir.mkdirs()
 
-    def destFile = new File(viewsDir, "${domainClass.propertyName}$viewName")
+    def destFile = new File(viewsDir, "${domainClass.propertyName.toLowerCase()}-${viewName.toLowerCase()}")
     destFile.withWriter { Writer writer ->
       generateView domainClass, viewName, writer
     }
