@@ -78,8 +78,8 @@ function serializeObject(inputs) {
 		} else if (this.type == 'checkbox') {
 			value = this.checked;
 		} else {
-			if (\$(this).attr('data-role') == 'datebox') {
-				value = \$(this).data('datebox').theDate;
+			if (\$(this).attr('data-role') == 'calbox') {
+				value = \$(this).data('calbox').theDate;
 			} else if (this.value != null) {
 				value = this.value;
 			} else {
