@@ -56,7 +56,7 @@ ${className}.prototype.renderToHtml = function() {
 
 function resetForm(form) {
 	var div = \$("#" + form);
-	div.find('input:text, input:hidden, input:password').val('');
+	div.find('input:text, input:hidden, input[type="number"], input:file, input:password').val('');
 	div.find('input:radio, input:checkbox').removeAttr('checked').removeAttr('selected').checkboxradio('refresh');
 }
 
@@ -78,7 +78,9 @@ function serializeObject(inputs) {
 		} else if (this.type == 'checkbox') {
 			value = this.checked;
 		} else {
-			if (this.value != null) {
+			if (\$(this).attr('data-role') == 'datebox') {
+				value = \$(this).data('datebox').theDate;
+			} else if (this.value != null) {
 				value = this.value;
 			} else {
 				value = '';

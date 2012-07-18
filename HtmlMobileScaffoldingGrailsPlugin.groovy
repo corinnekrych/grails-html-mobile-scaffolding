@@ -1,3 +1,5 @@
+import org.grails.html.mobile.JavascriptDateRegistrar
+
 class HtmlMobileScaffoldingGrailsPlugin {
 
     def version = '1.0-SNAPSHOT'
@@ -20,5 +22,9 @@ A plugin that scaffold HTML5 mobile application using JQuery mobile in one-page.
     def license = 'MIT'
     def issueManagement = [system: 'GitHub', url: 'https://github.com/..../issues']
     def scm = [url: 'https://github.com/...']
-
+    
+    
+    def doWithSpring = {
+      customPropertyEditorRegistrar(JavascriptDateRegistrar)
+  }
 }
