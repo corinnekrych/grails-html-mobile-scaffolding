@@ -1,4 +1,3 @@
-<% import grails.persistence.Event %>
 <% classNameLowerCase = className.toLowerCase() %>
 function ${className}() {
 	this.${classNameLowerCase} = [];
@@ -7,6 +6,15 @@ function ${className}() {
 \$('#section-show-${classNameLowerCase}').live('pageshow', function(e) {
 	var url = \$(e.target).attr("data-url");
 	var matches = url.match(/\\?id=(.*)/);
+	<% oneToManyProps.each { 
+		  def referencedType = it.type.name
+		  if (referencedType.lastIndexOf('.') > 0) {
+			  referencedType = referencedType.substring(referencedType.lastIndexOf('.')+1)
+		  }
+		 def referencedTypeToLowerCase = referencedType.toLowerCase()
+    %>
+    get${referencedType}s();
+    <% } %>
 	if (matches != null) {
 		show${className}(matches[1]);
 	} else {
@@ -14,13 +22,60 @@ function ${className}() {
 	}
 });
 
+<% if (oneToManyProps) { %>
+function _refreshSelectDropDown(select, newOptions) {
+	var options = null;
+	if(select.prop) {
+	  options = select.prop('options');
+	}
+	else {
+	  options = select.attr('options');
+	}
+	\$('option', select).remove();
+
+	\$.each(newOptions, function(val, text) {
+	    options[options.length] = new Option(text, val);
+	});
+	select.val(options[0]);
+	select.selectmenu('refresh');
+}
+<% oneToManyProps.each { 
+	  def referencedType = it.type.name
+	  if (referencedType.lastIndexOf('.') > 0) {
+		  referencedType = referencedType.substring(referencedType.lastIndexOf('.')+1)
+	  }
+	 def referencedTypeToLowerCase = referencedType.toLowerCase()
+%>
+function get${referencedType}s() {
+	\$.ajax({
+		cache : false,
+		type : "GET",
+		async : false,
+		dataType : "jsonp",
+		url : serverUrl + '/${referencedTypeToLowerCase}/list',
+		success : function(data) {
+			if (data) {
+				var options = new Object();
+				\$.each(data, function(val, text) {
+				   var key = this.id;
+				   var value = this.name;
+				   options[key] = value;
+				});
+				var manyToOneSelectFor${referencedType} = \$('select[data-gorm-relation="many-to-one"][name="${referencedTypeToLowerCase}"]');
+				_refreshSelectDropDown(manyToOneSelectFor${referencedType}, options)
+			}
+		},
+		error : function(xhr) {
+			alert(xhr.responseText);
+		}
+	});
+}
+<% } %>
+<% } %>
+
 function create${className}() {
 	resetForm("form-update-${classNameLowerCase}");
-    <%  excludedProps = Event.allEvents.toList() << 'id' << 'version'
-    allowedNames = domainClass.persistentProperties*.name << 'dateCreated' << 'lastUpdated'
-    props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
-    Collections.sort(props, comparator.constructors[0].newInstance([domainClass] as Object[]))
-    props.eachWithIndex { p, i ->
+    <%  props.eachWithIndex { p, i ->
     if (p.isEnum()) { %>	
 	\$('input[name="${p.name}"]:first').prop('checked', true);
 	\$('input[name="${p.name}"]:first').checkboxradio('refresh');
@@ -31,18 +86,17 @@ function create${className}() {
 function show${className}(id) {
 	resetForm("form-update-${classNameLowerCase}");
 	var ${classNameLowerCase} = \$("#section-${classNameLowerCase}s").data("${className}_" + id);
-    <%  excludedProps = Event.allEvents.toList() << 'id' << 'version'
-    allowedNames = domainClass.persistentProperties*.name << 'dateCreated' << 'lastUpdated'
-    props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
-    Collections.sort(props, comparator.constructors[0].newInstance([domainClass] as Object[]))
-    props.eachWithIndex { p, i ->
+    <% props.eachWithIndex { p, i ->
     if (p.type == Boolean || p.type == boolean) { %>
 	\$('#input-${classNameLowerCase}-${p.name}').prop('checked', ${classNameLowerCase}.${p.name});
 	\$('#input-${classNameLowerCase}-${p.name}').checkboxradio('refresh');
     <%  } else if (p.isEnum()) {%>
 	\$('#input-${classNameLowerCase}-${p.name}-' + ${classNameLowerCase}.${p.name}.name).prop('checked', true);
 	\$('#input-${classNameLowerCase}-${p.name}-' + ${classNameLowerCase}.${p.name}.name).checkboxradio('refresh');
-    <%  } else  {%>
+    <%  } else if(p.isOneToOne()) {   %>
+	\$('select[data-gorm-relation="many-to-one"][name="${p.name}"]').val(${classNameLowerCase}.${p.name}.id);
+	\$('select[data-gorm-relation="many-to-one"][name="${p.name}"]').selectmenu('refresh');
+    <% } else { %>
 	\$('#input-${classNameLowerCase}-${p.name}').val(${classNameLowerCase}.${p.name});
     <%  }  }%>
 	\$('#input-${classNameLowerCase}-id').val(${classNameLowerCase}.id);
@@ -68,8 +122,9 @@ function serializeObject(inputs) {
 	\$.each(arrayData, function() {
 		var value, classtype;
 		var add = true;
-
-		if (this.type == 'radio') {
+		if (this.type == 'select-one') {
+			value = \$(this).val();
+		} else if (this.type == 'radio') {
 			if (\$(this).is(':checked')) {
 				value = this.value;
 			} else {
@@ -86,14 +141,9 @@ function serializeObject(inputs) {
 				value = '';
 			}
 		}
-
 		if (add) {
-			if (objectData[this.name] != null) {
-				if (!objectData[this.name].push) {
-					objectData[this.name] = [ objectData[this.name] ];
-				}
-
-				objectData[this.name].push(value);
+			if (\$(this).attr('data-gorm-relation') == "many-to-one") {
+				objectData[this.name+'.id'] = value; 
 			} else {
 				objectData[this.name] = value;
 			}
@@ -106,7 +156,7 @@ function serializeObject(inputs) {
 
 \$("#submit-${classNameLowerCase}").live("click tap", function() {
 	var div = \$("#form-update-${classNameLowerCase}");
-	var inputs = div.find("input");
+	var inputs = div.find("input, select");
 	var obj = serializeObject(inputs);
 	var action = "update";
 	if (obj.id == "") {

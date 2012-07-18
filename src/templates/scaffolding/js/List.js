@@ -1,4 +1,3 @@
-<% import grails.persistence.Event %>
 <% classNameLowerCase = className.toLowerCase() %>
 function ${className}List() {
 	this.${classNameLowerCase}s = [];
@@ -54,14 +53,10 @@ function add${className}OnSection (${classNameLowerCase}) {
 	var out = '<li><a href="#section-show-${classNameLowerCase}?id='+ ${classNameLowerCase}.id + '" data-transition="fade" id="${classNameLowerCase}'; 
 	out =  out + ${classNameLowerCase}.id + '-in-list">';
 	
-    <%  excludedProps = Event.allEvents.toList() << 'id' << 'version'
-    allowedNames = domainClass.persistentProperties*.name << 'dateCreated' << 'lastUpdated'
-    props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
-    Collections.sort(props, comparator.constructors[0].newInstance([domainClass] as Object[]))
-    props.eachWithIndex { p, i -> 
+    <% props.eachWithIndex { p, i -> 
     	if (p.isEnum()) {
        %>out = out + ${classNameLowerCase}.${p.name}.name +';';
-       <%  } else {
+       <%  } else if (!p.isOneToMany()) {
        %>out = out + ${classNameLowerCase}.${p.name} +';';
        <%  }   }%>
 	out = out + '</a></li>';
@@ -71,11 +66,7 @@ function add${className}OnSection (${classNameLowerCase}) {
 	\$(${classNameLowerCase}).bind("refresh-${classNameLowerCase}" + ${classNameLowerCase}.id + "-list", function(bind, new${className}) {
 		var ${classNameLowerCase} = \$("#section-${classNameLowerCase}s").data('${className}_' + new${className}.id);
 		var textDisplay = "";
-	    <%  excludedProps = Event.allEvents.toList() << 'id' << 'version'
-	    allowedNames = domainClass.persistentProperties*.name << 'dateCreated' << 'lastUpdated'
-	    props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
-	    Collections.sort(props, comparator.constructors[0].newInstance([domainClass] as Object[]))
-	    props.eachWithIndex { p, i ->
+	    <% props.eachWithIndex { p, i ->
 	    	if (p.isEnum()) {
 	       %>textDisplay = textDisplay + new${className}.${p.name}.name +';';
 	       <%  } else {
