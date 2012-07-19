@@ -96,6 +96,10 @@ class HtmlMobileTemplateGenerator extends DefaultGrailsTemplateGenerator {
      def allowedNames = domainClass.persistentProperties*.name << 'dateCreated' << 'lastUpdated'
      def props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
      def oneToManyProps = props.findAll { it.isOneToOne() }
+    
+     oneToManyProps.each {GrailsDomainClass domainClassAssociation = it.getReferencedDomainClass()
+      println ">>>>>>" + domainClassAssociation.properties[0].name
+       }
      //oneToManyProps.each {println it.name}
      def binding = [pluginManager: pluginManager,
        project: project,

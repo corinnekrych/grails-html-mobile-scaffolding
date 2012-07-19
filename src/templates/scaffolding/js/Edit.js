@@ -1,3 +1,4 @@
+<% import org.codehaus.groovy.grails.commons.GrailsDomainClass %>
 <% classNameLowerCase = className.toLowerCase() %>
 function ${className}() {
 	this.${classNameLowerCase} = [];
@@ -58,7 +59,9 @@ function get${referencedType}s() {
 				var options = new Object();
 				\$.each(data, function(val, text) {
 				   var key = this.id;
-				   var value = this.name;
+				   <% GrailsDomainClass domainClassAssociation = it.getReferencedDomainClass()
+				      def firstAttribute = domainClassAssociation.properties[0].name	 %>			
+				   var value = this.${firstAttribute};
 				   options[key] = value;
 				});
 				var manyToOneSelectFor${referencedType} = \$('select[data-gorm-relation="many-to-one"][name="${referencedTypeToLowerCase}"]');
