@@ -5,17 +5,22 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import org.springframework.util.Assert
 import org.codehaus.groovy.grails.scaffolding.*
 import grails.persistence.Event
-//import org.grails.html.mobile.HtmlMobileTemplateGenerator
+import org.grails.html.mobile.HtmlMobileTemplateGenerator
 
 includeTargets << grailsScript("_GrailsCreateArtifacts")
 includeTargets << grailsScript("_GrailsGenerate")
 includeTargets << grailsScript("_GrailsBootstrap")
+includeTargets << grailsScript('_GrailsPackage')
 
 generateForName = null
 
 target(generateForOne: 'Generates controllers and views for only one domain class.') {
   depends compile, loadApp
-
+  
+  //println "BEFORE"
+  //def myClass = classLoader.loadClass('org.grails.html.mobile.HtmlMobileTemplateGenerator')
+  //println "AFTER" + myClass
+  
   def name = generateForName
   //grailsConsole.updateStatus "name $name "
 
@@ -51,16 +56,9 @@ def generateForDomainClass(domainClass) {
   templateGenerator.pluginManager = pluginManager
   templateGenerator.event = event
 
-  //event 'StatusUpdate', ["Generating views for domain class ${domainClass.fullName}"]
   templateGenerator.generateViews(domainClass, basedir)
-  //event 'GenerateViewsEnd', [domainClass.fullName]
-
-
-  //		event 'StatusUpdate', ["Generating controller for domain class ${domainClass.fullName}"]
   templateGenerator.generateController(domainClass, basedir)
-  //		event 'GenerateControllerEnd', [domainClass.fullName]
 }
-
 
 class HtmlMobileTemplateGenerator extends DefaultGrailsTemplateGenerator {
 
@@ -97,9 +95,6 @@ class HtmlMobileTemplateGenerator extends DefaultGrailsTemplateGenerator {
      def props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
      def oneToManyProps = props.findAll { it.isOneToOne() }
     
-     oneToManyProps.each {GrailsDomainClass domainClassAssociation = it.getReferencedDomainClass()
-      println ">>>>>>" + domainClassAssociation.properties[0].name
-       }
      //oneToManyProps.each {println it.name}
      def binding = [pluginManager: pluginManager,
        project: project,
@@ -118,14 +113,20 @@ class HtmlMobileTemplateGenerator extends DefaultGrailsTemplateGenerator {
    def suffix = viewName.find(/\.\w+$/)
 
    def viewsDir
+   def destFile
    if (suffix == '.html') {
      viewsDir = new File("$destDir/web-app")
    } else if (suffix == '.js') {
      viewsDir = new File("$destDir/web-app/js")
    }
    if (!viewsDir.exists()) viewsDir.mkdirs()
-
-   def destFile = new File(viewsDir, "${domainClass.propertyName.toLowerCase()}-${viewName.toLowerCase()}")
+  
+   if (suffix == '.html' && domainClass.name.toLowerCase() == grailsApplication.config?.grails?.scaffolding?.html?.mobile?.index?.toLowerCase()) {
+       destFile = new File(viewsDir, "${viewName.toLowerCase()}")
+   } else {
+     destFile = new File(viewsDir, "${domainClass.propertyName.toLowerCase()}-${viewName.toLowerCase()}")
+   }
+   
    destFile.withWriter { Writer writer ->
      generateView domainClass, viewName, writer
    }
