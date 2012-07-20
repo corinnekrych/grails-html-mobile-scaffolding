@@ -12,6 +12,7 @@
 <script src="http://code.jquery.com/mobile/1.1.1/jquery.mobile-1.1.1.min.js"></script>
 <script src="http://dev.jtsage.com/cdn/datebox/1.1.0/jqm-datebox-1.1.0.core.min.js"></script>
 <script src="http://dev.jtsage.com/cdn/datebox/1.1.0/jqm-datebox-1.1.0.mode.datebox.min.js"></script>
+<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>
 </head>
 
 <body>
@@ -81,10 +82,17 @@
             </li>
          <%  }   %>
         </ul>
+        <% if (longitude && latitude) { %>
+		<input type="hidden" name="longitude" id="input-${classNameLowerCase}-longitude" /> 
+		<input type="hidden" name="latitude" id="input-${classNameLowerCase}-latitude" />
+		<% } %>
         <input type="hidden" name="id" id="input-${classNameLowerCase}-id"/>
         <input type="hidden" name="version" id="input-${classNameLowerCase}-version"/>
         <input type="hidden" name="class" id="input-${classNameLowerCase}-class"/>
     </div>
+    <% if (longitude && latitude) { %>
+    <div id="map_canvas" style="height: 30%;width: 30%;position: absolute;"/>
+    <% } %>
     <div data-role="footer" data-position="fixed">
       <div data-role="navbar">
         <ul>

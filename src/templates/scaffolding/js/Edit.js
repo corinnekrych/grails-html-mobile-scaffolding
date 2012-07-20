@@ -83,8 +83,33 @@ function create${className}() {
 	\$('input[name="${p.name}"]:first').prop('checked', true);
 	\$('input[name="${p.name}"]:first').checkboxradio('refresh');
     <%  }  }%>	
+    
+    <% if (longitude && latitude) { %>
+    navigator.geolocation.getCurrentPosition(foundLocation);
+    <% } %>
+    
 	\$("#delete-${classNameLowerCase}").hide();
 }
+<% if (longitude && latitude) { %>
+function foundLocation(position) {
+	 \$("#input-${classNameLowerCase}-latitude").val(position.coords.latitude);
+	 \$("#input-${classNameLowerCase}-longitude").val(position.coords.longitude);
+}
+
+function showMap(lat,lng) {
+	 var latlng = new google.maps.LatLng(lat, lng);
+	 var myOptions = {
+       zoom: 18,
+	   center: latlng,
+	   mapTypeId: google.maps.MapTypeId.ROADMAP
+	 };
+	 var map = new google.maps.Map(document.getElementById("map_canvas"),myOptions);
+	 var marker = new google.maps.Marker({
+  	   position: new google.maps.LatLng(lat, lng),
+	   map: map
+	 });
+}
+<% } %>
 
 function show${className}(id) {
 	resetForm("form-update-${classNameLowerCase}");
@@ -105,6 +130,10 @@ function show${className}(id) {
 	\$('#input-${classNameLowerCase}-id').val(${classNameLowerCase}.id);
 	\$('#input-${classNameLowerCase}-version').val(${classNameLowerCase}.version);
 	\$('#input-${classNameLowerCase}-class').val(${classNameLowerCase}.class);
+	<% if (longitude && latitude) { %>
+    navigator.geolocation.getCurrentPosition(foundLocation);
+    showMap(${classNameLowerCase}.latitude, ${classNameLowerCase}.longitude)
+	<% } %>	
 	\$("#delete-${classNameLowerCase}").show();
 }
 

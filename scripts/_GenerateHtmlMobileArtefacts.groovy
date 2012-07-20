@@ -5,7 +5,6 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver
 import org.springframework.util.Assert
 import org.codehaus.groovy.grails.scaffolding.*
 import grails.persistence.Event
-import org.grails.html.mobile.HtmlMobileTemplateGenerator
 
 includeTargets << grailsScript("_GrailsCreateArtifacts")
 includeTargets << grailsScript("_GrailsGenerate")
@@ -90,11 +89,12 @@ class HtmlMobileTemplateGenerator extends DefaultGrailsTemplateGenerator {
      def packageName = domainClass.packageName ? "<%@ page import=\"${domainClass.fullName}\" %>" : ""
      def project = this.grailsApplication.metadata['app.name']
      
-     def excludedProps = Event.allEvents.toList() << 'id' << 'version'
+     def excludedProps = Event.allEvents.toList() << 'id' << 'version' << 'longitude' << 'latitude'
      def allowedNames = domainClass.persistentProperties*.name << 'dateCreated' << 'lastUpdated'
      def props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
      def oneToManyProps = props.findAll { it.isOneToOne() }
-    
+     def latitude = domainClass.properties.find { it.name == "latitude" }
+     def longitude = domainClass.properties.find { it.name == "longitude" }
      //oneToManyProps.each {println it.name}
      def binding = [pluginManager: pluginManager,
        project: project,
@@ -102,6 +102,8 @@ class HtmlMobileTemplateGenerator extends DefaultGrailsTemplateGenerator {
        domainClass: domainClass,
        props: props,
        oneToManyProps: oneToManyProps,
+       latitude: latitude,
+       longitude: longitude,
        className: domainClass.shortName]
 
      t.make(binding).writeTo(out)
@@ -121,7 +123,7 @@ class HtmlMobileTemplateGenerator extends DefaultGrailsTemplateGenerator {
    }
    if (!viewsDir.exists()) viewsDir.mkdirs()
   
-   if (suffix == '.html' && domainClass.name.toLowerCase() == grailsApplication.config?.grails?.scaffolding?.html?.mobile?.index?.toLowerCase()) {
+   if (suffix == '.html' && domainClass.name == grailsApplication.config?.grails?.scaffolding?.html?.mobile?.index) {
        destFile = new File(viewsDir, "${viewName.toLowerCase()}")
    } else {
      destFile = new File(viewsDir, "${domainClass.propertyName.toLowerCase()}-${viewName.toLowerCase()}")
