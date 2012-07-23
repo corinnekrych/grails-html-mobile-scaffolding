@@ -7,7 +7,7 @@ function ${className}() {
 \$('#section-show-${classNameLowerCase}').live('pageshow', function(e) {
 	var url = \$(e.target).attr("data-url");
 	var matches = url.match(/\\?id=(.*)/);
-	<% oneToManyProps.each { 
+	<% oneToOneProps.each { 
 		  def referencedType = it.type.name
 		  if (referencedType.lastIndexOf('.') > 0) {
 			  referencedType = referencedType.substring(referencedType.lastIndexOf('.')+1)
@@ -23,7 +23,7 @@ function ${className}() {
 	}
 });
 
-<% if (oneToManyProps) { %>
+<% if (oneToOneProps) { %>
 function _refreshSelectDropDown(select, newOptions) {
 	var options = null;
 	if(select.prop) {
@@ -40,7 +40,7 @@ function _refreshSelectDropDown(select, newOptions) {
 	select.val(options[0]);
 	select.selectmenu('refresh');
 }
-<% oneToManyProps.each { 
+<% oneToOneProps.each { 
 	  def referencedType = it.type.name
 	  if (referencedType.lastIndexOf('.') > 0) {
 		  referencedType = referencedType.substring(referencedType.lastIndexOf('.')+1)

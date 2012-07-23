@@ -56,7 +56,7 @@ function add${className}OnSection (${classNameLowerCase}) {
     <% props.eachWithIndex { p, i -> 
     	if (p.isEnum()) {
        %>out = out + ${classNameLowerCase}.${p.name}.name +';';
-       <%  } else if (!p.isOneToMany()) {
+       <%  } else if (!p.isOneToOne()) {
        %>out = out + ${classNameLowerCase}.${p.name} +';';
        <%  }   }%>
 	out = out + '</a></li>';

@@ -92,7 +92,7 @@ class HtmlMobileTemplateGenerator extends DefaultGrailsTemplateGenerator {
      def excludedProps = Event.allEvents.toList() << 'id' << 'version' << 'longitude' << 'latitude'
      def allowedNames = domainClass.persistentProperties*.name << 'dateCreated' << 'lastUpdated'
      def props = domainClass.properties.findAll { allowedNames.contains(it.name) && !excludedProps.contains(it.name) && it.type != null && !Collection.isAssignableFrom(it.type) }
-     def oneToManyProps = props.findAll { it.isOneToOne() }
+     def oneToOneProps = props.findAll { it.isOneToOne() }
      def latitude = domainClass.properties.find { it.name == "latitude" }
      def longitude = domainClass.properties.find { it.name == "longitude" }
      //oneToManyProps.each {println it.name}
@@ -101,7 +101,7 @@ class HtmlMobileTemplateGenerator extends DefaultGrailsTemplateGenerator {
        packageName: packageName,
        domainClass: domainClass,
        props: props,
-       oneToManyProps: oneToManyProps,
+       oneToOneProps: oneToOneProps,
        latitude: latitude,
        longitude: longitude,
        className: domainClass.shortName]
